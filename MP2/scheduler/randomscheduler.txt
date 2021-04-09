@@ -1,0 +1,41 @@
+tproc * randomscheduler(tlist * procs, tlist * ready, int * delta);
+
+* ready est une liste avec les processus prêts.
+* proc contient tous les autres processus.
+* delta corespond au nombre d’unités de temps pendant lesquelles le processus sera exécuté.
+
+- len(ready); permet d'avoir le nombre de processus prêts
+
+- rand()%length; Tire un nombre entre 0 et length - 1
+
+- tnode * p = ready->first; p prend la valeur du premier processus ready
+
+typedef struct tnode {
+    tproc * proc;
+    struct tnode * next;
+} tnode;
+
+- for (int i=0; i < selected; i++) {
+    p = p->next;
+  }
+Parcours les processus ready du premier au suivent i fois où i corespond au nombre aléatoir tiré précedament.
+
+- *delta = (rand()%p->proc->remaining) + 1; ici p correspond au i éme processus ready,
+
+typedef struct {
+    int pid;
+    int activation;
+    int length;
+    int remaining;
+} tproc;
+
+le champ remaining permet de savoir à tout instant combien de temps il reste à exécuter.
+
+donc delta ici prend une valeur entre 1 et le temps que processus p lui reste a éxecuter.
+
+- return p->proc; retourne le processus p dans la fonction simulate().
+
+Donc pour conclure randomscheduler() prend un des processus ready et
+modifie le temps pendant lesquelles le processus sera exécuté par
+une valeur random du temps qu'il reste à exécuter qui sera au minimum 1 puis
+renvoie ce processus

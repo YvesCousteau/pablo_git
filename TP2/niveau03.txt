@@ -1,0 +1,38 @@
+$ readelf -S tp2-binaires/niveau3
+There are 31 section headers, starting at offset 0x16d8:
+
+Section Headers:
+  [Nr] Name              Type             Address           Offset
+       Size              EntSize          Flags  Link  Info  Align
+
+  [25] .data             PROGBITS         0000000000600c00  00000c00
+      0000000000000010  0000000000000000  WA       0     0     8
+
+$ readelf -a tp2-binaires/niveau3 | grep "secret"
+    54: 0000000000400646   149 FUNC    GLOBAL DEFAULT   14 getsecret
+
+$ readelf -a tp2-binaires/niveau3 | grep "data"
+  [16] .rodata           PROGBITS         0000000000400800  00000800
+  [25] .data             PROGBITS         0000000000600c00  00000c00
+   02     .interp .note.ABI-tag .note.gnu.build-id .gnu.hash .dynsym .dynstr .gnu.version .gnu.version_r .rela.dyn .rela.plt .init .plt .plt.got .text .fini .rodata .eh_frame_hdr .eh_frame
+   03     .init_array .fini_array .jcr .dynamic .got .got.plt .data .bss
+    49: 0000000000600c00     0 NOTYPE  WEAK   DEFAULT   25 data_start
+    52: 0000000000600c10     0 NOTYPE  GLOBAL DEFAULT   25 _edata
+    56: 0000000000600c00     0 NOTYPE  GLOBAL DEFAULT   25 __data_start
+
+
+$ readelf -a tp2-binaires/niveau3 | grep "25"
+  [25] .data             PROGBITS         0000000000600c00  00000c00
+       0000000000000025  0000000000000001  MS       0     0     1
+    25: 0000000000600c00     0 SECTION LOCAL  DEFAULT   25
+    49: 0000000000600c00     0 NOTYPE  WEAK   DEFAULT   25 data_start
+    52: 0000000000600c10     0 NOTYPE  GLOBAL DEFAULT   25 _edata
+    56: 0000000000600c00     0 NOTYPE  GLOBAL DEFAULT   25 __data_start
+    59: 0000000000600c08     0 OBJECT  GLOBAL HIDDEN    25 __dso_handle
+    71: 0000000000600c10     0 OBJECT  GLOBAL HIDDEN    25 __TMC_END__
+
+############################
+$ gcc -fPIC -shared cheat_niveau03.c -o cheat_niveau03.so
+$ env LD_PRELOAD="./cheat_niveau03.so" ./tp2-binaires/niveau3 aze
+
+Utilisation de LD PRELOAD voir cheat_niveau03.c :)

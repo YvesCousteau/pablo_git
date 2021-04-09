@@ -1,0 +1,198 @@
+/* --Scheduler edf-- */
+
+/* List of ready procs */
+tlist ready;
+
+/* List of other procs */
+tlist procs;
+
+/* The selected scheduler */
+tscheduler scheduler;
+
+/* The scheduling statistics */
+tstats stats = {0} ;
+
+/* display usage message */
+void usage() {
+    fail("usage: sched [fcfs, rr, sjf, srtf, rm, edf]\n");
+}
+
+/* simulate a single core scheduler, from time 0 to `max_time` */
+void simulate(int max_time)
+{
+    int time=0;
+    while(time < max_time)
+    {
+        /* Activate process */
+        for (tnode * p = procs.first; p != NULL;) {
+            tproc * proc = p->proc;
+            p = p->next;
+
+            /* Move every process which should be activated,
+             * from the procs list to the ready list */
+            if (proc->activation <= time)
+            {
+                del(&procs, proc);
+                add(&ready, proc);
+            }
+        }
+
+        /* If any process is ready, then we can schedule! */
+        if (ready.first != NULL) {
+
+            int delta = 0;
+            /* Call the scheduler */
+            tproc * proc = scheduler(&procs, &ready, &delta);
+
+            /* Ensure the scheduler has advanced at least one unit of time */
+            assert(delta > 0);
+
+
+            if (scheduler == rm || scheduler == edf){
+              if (time + delta > (proc->activation + proc->period)) {
+                /* Output task execution qui ne satisfont pas leurs echeances */
+                printf("\\TaskExecution[color=red]{%d}{%d}{%d}\n", proc->pid, time, time+delta);
+              }
+              else
+              {
+                /* Output task execution */
+                printf("\\TaskExecution{%d}{%d}{%d}\n", proc->pid, time, time+delta);
+              }
+            }
+            else
+            {
+              /* Output task execution */
+              printf("\\TaskExecution{%d}{%d}{%d}\n", proc->pid, time, time+delta);
+            }
+
+            if (proc->length == proc->remaining) {
+              stats.response += time - proc->activation ;
+            }
+            /* Advance time by delta */
+            time += delta;
+            /* Remove delta from chosen process */
+            proc->remaining-=delta;
+            /* If the process remaining time is less zero or less,
+             * delete it */
+            if (proc->remaining <= 0) {
+
+
+                if (scheduler == rm || scheduler == edf) {
+
+                  /* Le simulateur comptabilise le temps total de complétion */
+                  stats.completion += time - proc->activation;
+                  /* Le simulateur comptabilise le temps total de waitting */
+                  stats.waiting += time - proc->activation - proc->length;
+
+                  proc->activation += proc->period;
+                  proc->remaining = proc->length;
+
+
+                  del(&procs, proc);
+                  add(&procs, proc);
+                  del(&ready, proc);
+
+                }
+                else
+                {
+                  /* Le simulateur comptabilise le temps total de complétion */
+                  stats.completion += time - proc->activation;
+                  /* Le simulateur comptabilise le temps total de waitting */
+                  stats.waiting += time - proc->activation - proc->length;
+                  del(&procs, proc);
+                  del(&ready, proc);
+                }
+            }
+        }
+        /* If no process is ready, just advance the simulation timer */
+        else {
+
+            time += 1;
+        }
+
+    }
+}
+
+int main(int argc, char * argv[]) {
+
+    /* Parse arguments */
+    if (argc != 2) usage();
+
+    /* Seed random number generator */
+    srand(time(NULL) ^ getpid());
+
+    char * method = argv[1];
+
+    /* Utilisation du cpu */
+    // float u;
+    /* Utilisation du cpu pour rm */
+    // float u_rm;
+    //
+    // float n = sizeof(tasks)/sizeof(tproc);
+
+    /* The sched argument should be one of fcfs, rr, sjf, srtf */
+    if (strcmp(method, "fcfs") == 0) {
+        scheduler = fcfs;
+    }
+    else if (strcmp(method, "rr") == 0) {
+        scheduler = rr;
+    }
+    else if (strcmp(method, "sjf") == 0) {
+        scheduler = sjf;
+    }
+    else if (strcmp(method, "srtf") == 0) {
+        scheduler = srtf;
+    }
+    else if (strcmp(method, "rm") == 0) {
+        scheduler = rm;
+        // u_rm = n*(pow(2,(1/n))-1);
+    }
+    else if (strcmp(method, "edf") == 0) {
+        scheduler = edf;
+    }
+    else {
+        usage();
+    }
+
+    /* Add all tasks to the procs queue */
+    for(int i = 0; i < sizeof(tasks)/sizeof(tproc); i ++) {
+        add(&procs, &(tasks[i]));
+        /* Utilisation du cpu au maximum de 100% */
+        // if (scheduler == rm || scheduler == edf) {
+        //   u += (float)(tasks[i].length/(float)tasks[i].period);
+        //   if (u > 1) {
+        //     usage();
+        //   }
+        //   // else if(u > u_rm && scheduler == rm )
+        //   // {
+        //   //
+        //   // }
+        // }
+    }
+    // printf("%.2f < %.2f\n\n\n",u_rm,u );
+
+    /* Output RTGrid header */
+    printf("\\begin{RTGrid}[width=0.8\\textwidth]{%d}{%d}\n", len(&procs), max_time);
+
+    /* Output task arrivals for all tasks */
+    for (tnode * p = procs.first; p != NULL; p = p->next) {
+        printf("\\TaskArrival{%d}{%d}\n", p->proc->pid, p->proc->activation);
+    }
+
+    /* Start scheduling simulation */
+    simulate(max_time);
+
+    /* Close RTGrid environment */
+    printf("\\end{RTGrid}\\newline\\newline\n");
+
+    /* Print statistics */
+    printf("Total completion time = %d\\newline\n", stats.completion);
+    printf("Total waiting time = %d\\newline\n", stats.waiting);
+    printf("Total response time = %d\\newline\n", stats.response);
+
+    /* Empty the lists if needed */
+    del_all(&ready);
+    del_all(&procs);
+
+    return 0;
+}

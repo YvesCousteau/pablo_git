@@ -1,0 +1,122 @@
+/* Copyright (c) 2013 Pablo Oliveira <pablo.oliveira@prism.uvsq.fr>.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.  All rights reserved.
+ */
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <assert.h>
+#include <string.h>
+#include <time.h>
+#include <unistd.h>
+#include "sched.h"
+/* Compile the task descriptions */
+#include "task_description.h"
+#include <math.h>
+
+/* --Scheduler random--*/
+tproc * randomscheduler(tlist * procs, tlist * ready, int * delta) {
+    int length = len(ready);
+    int selected = rand()%length;
+    tnode * p = ready->first;
+    for (int i=0; i < selected; i++) {
+        p = p->next;
+    }
+    *delta = rand()%p->proc->remaining + 1;
+    return p->proc;
+}
+/* --Scheduler random--*/
+
+/* --Scheduler fcfs-- */
+tproc * fcfs(tlist * procs, tlist * ready, int * delta) {
+    /* Premier arrive pemier servi (FIFO) */
+    tnode * p = ready->first;
+    *delta = p->proc->remaining;
+    return p->proc;
+}
+/* --Scheduler fcfs-- */
+
+/* --Scheduler rr-- */
+tproc * rr(tlist * procs, tlist * ready, int * delta) {
+    /* Ordonnancement en Tourniquet */
+    tnode * p = ready->first;
+    if (q > p->proc->remaining) {
+      *delta = p->proc->remaining;
+    }
+    else
+    {
+      *delta = q;
+    }
+
+    add(procs, p->proc);
+    del(ready, p->proc);
+    return procs->last->proc;
+}
+/* --Scheduler rr-- */
+
+/* --Scheduler sjf-- */
+tproc * sjf(tlist * procs, tlist * ready, int * delta) {
+    /* Shortest Job First */
+    tnode * p = ready->first;
+    tnode * min = ready->first;
+    for (int i=0; i < len(ready);i++) {
+      if (p->proc->remaining < min->proc->remaining) {
+        min = p;
+      }
+      p = p->next;
+    }
+    *delta = min->proc->remaining;
+    return min->proc;
+}
+/* --Scheduler sjf-- */
+
+/* --Scheduler srtf-- */
+tproc * srtf(tlist * procs, tlist * ready, int * delta) {
+    /* Shortest Reamining Time First */
+    tnode * p = ready->first;
+    tnode * min = ready->first;
+    for (int i=0; i < len(ready);i++) {
+      if (p->proc->remaining < min->proc->remaining) {
+        min = p;
+      }
+      p = p->next;
+    }
+    *delta = 1;
+    return min->proc;
+}
+/* --Scheduler srtf-- */
+
+/* --Scheduler rm-- */
+tproc * rm(tlist * procs, tlist * ready, int * delta) {
+  /* monotonic analysis */
+  tnode * p = ready->first;
+  tnode * min = ready->first;
+  for (int i=0; i < len(ready);i++)
+  {
+    if ((p->proc->period) < (min->proc->period))
+    {
+        min = p;
+    }
+    p = p->next;
+  }
+  *delta = 1;
+  return min->proc;
+}
+/* --Scheduler rm-- */
+

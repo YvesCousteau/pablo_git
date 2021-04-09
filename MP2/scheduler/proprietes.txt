@@ -1,0 +1,39 @@
+/* FCFS */
+
+J'ai changée les valeurs dans task_description.h pour pouvoir mettre en evidance
+les proprietées de cette algortihme d'ordonnancement.
+
+/* test pour les proprietées de FCFS */
+int max_time = 49;
+tproc tasks[] = {
+    {1,0,12,12},
+    {2,2,6,6},
+    {3,4,24,24},
+    {4,6,5,5},
+    {5,8,2,2}
+};
+
+Pour la task 1 et 3 j'ai pris une taille conséquente pour mettre en valeur l'effet de convoie que l'on remaque bien.
+
+Nous avons dans cette exemple une réponse et une attente egale mais c'est logique puisque cette algorithme est non préemptif.
+
+** ----------------------- **
+
+/* RR */
+
+Nous avons dans cette exemple une réponse et une attente différente mais c'est logique puisque cette algorithme est préemptif.
+
+On remarque que lorsque le q (quantum) est >= a la taille de la tache la plus grande alors on obtient le même résultat que avec le scheduler FCFS.
+
+
+** ----------------------- **
+
+/* SFJ */
+
+Nous avons dans cette exemple une réponse et une attente egale mais c'est logique puisque ce scheduler est non préemptif.
+
+** ----------------------- **
+
+/* SRTF */
+
+** ----------------------- **
